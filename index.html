@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Weird Money Machine</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --accent1: #ff3c5f;
+    --accent2: #ffe94d;
+    --accent3: #00ffc2;
+    --accent4: #bf5cff;
+    --text: #f0eeff;
+    --muted: #7b7a9a;
+    --border: #2a2a3a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom Cursor */
+  #cursor {
+    position: fixed;
+    width: 18px;
+    height: 18px;
+    background: var(--accent2);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.08s ease, background 0.2s ease, width 0.2s ease, height 0.2s ease;
+    mix-blend-mode: difference;
+  }
+  #cursor.big { width: 48px; height: 48px; background: var(--accent1); }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.35;
+  }
+
+  /* Grid background */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Blob lights */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.12;
+    animation: blobFloat 12s ease-in-out infinite alternate;
+  }
+  .blob1 { width: 500px; height: 500px; background: var(--accent1); top: -150px; left: -150px; }
+  .blob2 { width: 400px; height: 400px; background: var(--accent4); bottom: -100px; right: -100px; animation-delay: -4s; }
+  .blob3 { width: 300px; height: 300px; background: var(--accent3); top: 50%; left: 50%; animation-delay: -8s; }
+
+  @keyframes blobFloat {
+    0% { transform: translate(0,0) scale(1); }
+    100% { transform: translate(40px, 30px) scale(1.1); }
+  }
+
+  /* HEADER */
+  header {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 60px 20px 20px;
+  }
+
+  .header-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(64px, 12vw, 140px);
+    line-height: 0.88;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+
+  h1 span.hl1 { color: var(--accent1); }
+  h1 span.hl2 { color: var(--accent2); }
+
+  .header-sub {
+    margin-top: 20px;
+    font-size: 15px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.7;
+  }
+
+  /* COUNTER */
+  .counter-row {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin: 32px auto 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .counter-row span { color: var(--accent2); font-weight: 700; }
+
+  /* BIG BUTTON */
+  .btn-wrapper {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    margin: 48px auto 0;
+  }
+
+  #big-btn {
+    position: relative;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+    background: transparent;
+    color: var(--bg);
+    border: none;
+    padding: 0;
+    cursor: none;
+    outline: none;
+  }
+
+  .btn-inner {
+    background: var(--accent2);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 52px;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+    transition: background 0.15s, transform 0.1s;
+    position: relative;
+    z-index: 2;
+  }
+
+  #big-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent1);
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+    transform: translate(6px, 6px);
+    z-index: 1;
+  }
+
+  #big-btn:hover .btn-inner { background: var(--accent3); transform: translate(-4px, -4px); }
+  #big-btn:active .btn-inner { transform: translate(2px, 2px); }
+
+  .btn-icon {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    transition: transform 0.3s ease;
+  }
+  #big-btn:hover .btn-icon { transform: rotate(90deg); }
+
+  /* RESULT CARD */
+  #result-area {
+    position: relative;
+    z-index: 10;
+    max-width: 820px;
+    margin: 52px auto 80px;
+    padding: 0 20px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  #result-area.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .idea-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Animated border top */
+  .idea-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2), var(--accent3), var(--accent4));
+    animation: rainbowSlide 3s linear infinite;
+    background-size: 200% 100%;
+  }
+  @keyframes rainbowSlide {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+
+  .card-header {
+    padding: 36px 40px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .idea-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 72px;
+    line-height: 1;
+    color: var(--border);
+    flex-shrink: 0;
+    min-width: 72px;
+    text-align: right;
+  }
+
+  .idea-title-block { flex: 1; }
+
+  .idea-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: 8px;
+  }
+
+  .idea-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 0;
+  }
+
+  .card-body { padding: 32px 40px; }
+
+  .idea-desc {
+    font-size: 16px;
+    line-height: 1.75;
+    color: #c8c5e0;
+    margin-bottom: 32px;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 14px;
+  }
+
+  .methods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .method-pill {
+    background: rgba(255,233,77,0.06);
+    border: 1px solid rgba(255,233,77,0.18);
+    padding: 10px 16px;
+    font-size: 13px;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent2);
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    transition: background 0.2s;
+  }
+  .method-pill:hover { background: rgba(255,233,77,0.12); }
+
+  /* Domain examples */
+  .domains-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .domain-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,255,194,0.06);
+    border: 1px solid rgba(0,255,194,0.22);
+    padding: 8px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--accent3);
+    transition: background 0.2s, transform 0.15s;
+    cursor: default;
+  }
+  .domain-chip:hover { background: rgba(0,255,194,0.14); transform: translateY(-2px); }
+  .domain-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent3);
+    flex-shrink: 0;
+  }
+
+  /* Profit meter */
+  .profit-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .profit-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .profit-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .profit-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    width: 0%;
+    transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+  }
+  .profit-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--accent2);
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* Share row */
+  .share-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .share-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 16px;
+    cursor: none;
+    text-transform: uppercase;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .share-btn:hover { border-color: var(--accent1); color: var(--accent1); }
+  #copied-msg {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent3);
+    align-self: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  #copied-msg.show { opacity: 1; }
+
+  /* History ticker */
+  .ticker-wrapper {
+    position: relative;
+    z-index: 10;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    background: var(--surface);
+    padding: 10px 0;
+    margin-bottom: 0;
+  }
+  .ticker-inner {
+    display: flex;
+    gap: 60px;
+    white-space: nowrap;
+    animation: tickerRoll 30s linear infinite;
+    width: max-content;
+  }
+  @keyframes tickerRoll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .ticker-item {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .ticker-item span { color: var(--accent2); }
+
+  /* Shake animation for card on new reveal */
+  @keyframes cardReveal {
+    0%  { transform: scale(0.94) rotate(-1deg); opacity: 0; }
+    60% { transform: scale(1.01) rotate(0.3deg); opacity: 1; }
+    100%{ transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  .idea-card.animate { animation: cardReveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  /* Footer */
+  footer {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .card-header { padding: 24px 20px 16px; flex-direction: column; gap: 8px; }
+    .card-body { padding: 20px; }
+    .idea-number { font-size: 48px; }
+    .methods-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+
+<!-- TICKER -->
+<div class="ticker-wrapper">
+  <div class="ticker-inner" id="ticker">
+    <span class="ticker-item">weird biz idea generator &mdash;</span>
+    <span class="ticker-item">10 <span>cursed</span> money-making schemes &mdash;</span>
+    <span class="ticker-item">no business plan needed &mdash;</span>
+    <span class="ticker-item">disclaimer: <span>do this at your own risk</span> &mdash;</span>
+    <span class="ticker-item">some of these <span>actually work</span> &mdash;</span>
+    <span class="ticker-item">weird biz idea generator &mdash;</span>
+    <span class="ticker-item">10 <span>cursed</span> money-making schemes &mdash;</span>
+    <span class="ticker-item">no business plan needed &mdash;</span>
+    <span class="ticker-item">disclaimer: <span>do this at your own risk</span> &mdash;</span>
+    <span class="ticker-item">some of these <span>actually work</span> &mdash;</span>
+  </div>
+</div>
+
+<header>
+  <p class="header-eyebrow">// weird money machine v1.0 //</p>
+  <h1>
+    <span class="hl1">WEIRD</span><br>
+    <span class="hl2">MONEY</span><br>
+    IDEAS
+  </h1>
+  <p class="header-sub">Click the button. Get a cursed million-dollar idea. Execute it. Retire weird.</p>
+  <div class="counter-row">
+    <div>IDEAS GENERATED: <span id="gen-count">0</span></div>
+    <div>SUCCESS RATE: <span>0%</span></div>
+    <div>WEIRDNESS: <span>MAX</span></div>
+  </div>
+</header>
+
+<div class="btn-wrapper">
+  <button id="big-btn" aria-label="Generate weird idea">
+    <div class="btn-inner">
+      <svg class="btn-icon" viewBox="0 0 22 22" fill="none">
+        <path d="M11 2v4M11 16v4M2 11h4M16 11h4M4.93 4.93l2.83 2.83M14.24 14.24l2.83 2.83M4.93 17.07l2.83-2.83M14.24 7.76l2.83-2.83" stroke="#0a0a0f" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      GENERATE WEIRD IDEA
+    </div>
+  </button>
+</div>
+
+<div id="result-area">
+  <div class="idea-card" id="idea-card">
+    <div class="card-header">
+      <div class="idea-number" id="idea-number">01</div>
+      <div class="idea-title-block">
+        <p class="idea-tag" id="idea-tag">Category</p>
+        <h2 class="idea-title" id="idea-title">Idea Title Goes Here</h2>
+      </div>
+    </div>
+    <div class="card-body">
+      <p class="idea-desc" id="idea-desc">Description goes here...</p>
+
+      <p class="section-label">Monetization Methods</p>
+      <div class="methods-grid" id="methods-grid"></div>
+
+      <p class="section-label">Real-World Example Domains</p>
+      <div class="domains-row" id="domains-row"></div>
+
+      <div class="profit-row">
+        <span class="profit-label">PROFIT POTENTIAL</span>
+        <div class="profit-bar-track"><div class="profit-bar-fill" id="profit-bar"></div></div>
+        <div class="profit-val" id="profit-val">$0</div>
+      </div>
+
+      <div class="share-row">
+        <button class="share-btn" id="copy-btn">Copy Idea</button>
+        <span id="copied-msg">-- Copied! --</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  All ideas are cursed. All domains are real or were real. Your mileage may vary. Consult zero lawyers.
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+  });
+  document.querySelectorAll('button, a, .domain-chip, .method-pill').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+  });
+
+  const ideas = [
+    {
+      id: 1,
+      tag: "Revenge-as-a-Service",
+      title: "Poop Senders Anonymous",
+      desc: "You mail genuine animal excrement in an unmarked box to anyone in the world. No return address. No explanation. The recipient just... gets poop in the mail. Turns out thousands of people NEED to send poop to their enemies, ex-bosses, and HOA board members but lack the logistical pipeline. You provide that pipeline.",
+      methods: ["Pay-per-poop packages ($17-$35)", "Tiered subscriptions (monthly poop plans)", "Premium 'mystery creature' upsell", "Bulk corporate revenge bundles"],
+      domains: ["poopsenders.com", "shitexpress.com", "poopvault.com", "poopost.com"],
+      profit: 78,
+      profitLabel: "$400K/yr"
+    },
+    {
+      id: 2,
+      tag: "Existential Pest-ering",
+      title: "Name A Cockroach After Your Ex",
+      desc: "A zoo, aquarium, or rescue center lets you pay to officially name a cockroach (or rat, or snake) after your ex. They send you a certificate, a photo of 'your' roach, and a video of it eating garbage. Valentine's Day promo alone makes rent. Keepers love it because it funds actual animal care. Everyone wins except Kevin.",
+      methods: ["Certificate fee ($15-$45)", "Valentine's / breakup season surge pricing", "Physical framed cert upsell ($29)", "Gift bundles with dark chocolate"],
+      domains: ["namearoach.com", "roachregistry.com", "exbugs.com", "cursedcertificate.com"],
+      profit: 62,
+      profitLabel: "$180K/yr"
+    },
+    {
+      id: 3,
+      tag: "Chaos Mail",
+      title: "Glitter Bomb Postal Service",
+      desc: "You send an envelope engineered to explode with 200 grams of fine glitter the moment it's opened. The recipient will find glitter in their carpet, teeth, and soul for the next six months. You sell this as 'the gift that never ends.' There are documented cases of recipients crying. You are a villain. A profitable villain.",
+      methods: ["Per-envelope sales ($15 flat)", "Custom message card add-on", "Seasonal glitter (skull glitter, etc.)", "Bulk office prank packages"],
+      domains: ["shipyourenemiesglitter.com", "glitterbombs.co", "foreverglitter.com", "sendglitter.com"],
+      profit: 85,
+      profitLabel: "$500K/yr"
+    },
+    {
+      id: 4,
+      tag: "Analog Chaos",
+      title: "Aggressive Handwritten Apology Letters",
+      desc: "You write deeply dramatic, handwritten apology letters on behalf of people who messed up. Not just sorry -- CINEMATIC apologies. Six pages. Tear-stained paper (real, from an onion). Wax seal. The recipient gets a piece of theater. Available in tiers: Mild Regret, Full Groveling, and the legendary 'Shakespearean Despair' package.",
+      methods: ["Tiered letter packages ($25-$120)", "Rush 24hr delivery upcharge", "Personalized details add-ons", "B2C gift cards (apology gifting market)"],
+      domains: ["writemyapology.com", "sorryletter.co", "grovelmasters.com", "deepapology.com"],
+      profit: 55,
+      profitLabel: "$90K/yr"
+    },
+    {
+      id: 5,
+      tag: "Premium Dirt Trade",
+      title: "Famous Place Dirt Seller",
+      desc: "You collect vials of dirt from famous locations -- Graceland, Area 51's perimeter, the actual Hollywood Walk of Fame, the site of famous sports victories -- seal them in little glass vials with certificates of authenticity, and sell them to obsessives. People pay $40 for a teaspoon of Nevada dust. This is legal. This is real. This is America.",
+      methods: ["Per-vial sales ($25-$60)", "Subscription dirt club (monthly location)", "Historical event site premiums", "Custom location commission requests"],
+      domains: ["holylandearth.com", "famousdirt.com", "dirtofamerica.com", "sacredsoil.shop"],
+      profit: 69,
+      profitLabel: "$200K/yr"
+    },
+    {
+      id: 6,
+      tag: "Anti-Social Commerce",
+      title: "Professional Excuse Generator",
+      desc: "You run a hotline (or app) that generates legally plausible, highly detailed excuses for why someone cannot attend events, meetings, family dinners, or dates. Premium tier: you call their boss for them. Platinum tier: you provide a fake doctor's note formatted to look like every legitimate medical form you've ever seen. Demand is infinite.",
+      methods: ["Per-excuse fee ($8-$35)", "Monthly excuse subscription", "Phone call proxy service", "Enterprise HR excuse bundles"],
+      domains: ["excuseme.io", "skipit.app", "noshowpro.com", "fakesick.co"],
+      profit: 71,
+      profitLabel: "$250K/yr"
+    },
+    {
+      id: 7,
+      tag: "Cursed Curations",
+      title: "Ugly Produce Subscription Box",
+      desc: "Grocery stores reject 20-30% of produce for being cosmetically imperfect. You source those rejected nightmare vegetables directly from farms, photograph them dramatically, give them names ('Gerald the Twisted Carrot'), and ship them in mystery boxes. Subscribers get functional food AND emotional support for vegetables that just needed a chance.",
+      methods: ["Weekly/monthly box subscriptions ($22-$45)", "Corporate 'quirky office' bulk orders", "Ugly produce hot sauce collab", "Sponsored content from farms"],
+      domains: ["uglyveggies.com", "misfitmarkets.com", "oddlygoodproduce.com", "rejectbox.co"],
+      profit: 88,
+      profitLabel: "$2M/yr"
+    },
+    {
+      id: 8,
+      tag: "Petty Revenge Tech",
+      title: "Passive-Aggressive Greeting Cards AI",
+      desc: "An AI tool that generates greeting cards that are TECHNICALLY sweet but read as deeply passive-aggressive to anyone who knows the sender. 'Happy Birthday -- I hope this year is exactly what you deserve.' You sell print-on-demand physical cards, digital downloads, and offer a card customizer. Relationship drama is evergreen content.",
+      methods: ["Per-card sales ($5-$12)", "Printable digital downloads", "Bulk pack bundles", "White-label API for card sites"],
+      domains: ["nicelyshady.com", "politelypetty.com", "kindofmean.cards", "sweetvengeance.co"],
+      profit: 74,
+      profitLabel: "$300K/yr"
+    },
+    {
+      id: 9,
+      tag: "Social Lubricant Industry",
+      title: "Professional Conversation Ender Service",
+      desc: "A subscription service where someone texts you a code word mid-awkward-conversation and within 90 seconds receives a 'very urgent' fake phone call from a live operator who reads a script justifying immediate exit. Scripts include: family emergency, dog situation, work crisis, and the legendary 'Your sourdough starter is dying.' Exit gracefully. Forever.",
+      methods: ["Monthly subscriber plans ($12-$29/mo)", "Pay-per-rescue option ($5 per call)", "Couples plans (escape separately, together)", "Corporate event package"],
+      domains: ["saveme.app", "exitcall.co", "fakecall.app", "rescuecall.io"],
+      profit: 80,
+      profitLabel: "$450K/yr"
+    },
+    {
+      id: 10,
+      tag: "Absurdist Retail",
+      title: "Rent-A-Pet-Rock 2.0",
+      desc: "You rent premium, hand-selected rocks for a monthly fee. Each rock has a name, a backstory, a care card, and arrives in a box with wood shavings. The 'premium' tier comes with a tiny sweater. You offer rock insurance. You have a rock return policy. When customers inevitably get attached and want to buy the rock, you sell it for $150. This is your business model.",
+      methods: ["Monthly rock rental ($9-$22/mo)", "Rock purchase option", "Rock accessories upsell (tiny hats)", "Rock memorial service (premium tier)"],
+      domains: ["rentalrock.com", "mypetrock.shop", "rockcompanion.co", "stonefriend.com"],
+      profit: 60,
+      profitLabel: "$120K/yr"
+    }
+  ];
+
+  let genCount = 0;
+  let lastIndex = -1;
+  let currentIdea = null;
+
+  const resultArea = document.getElementById('result-area');
+  const ideaCard = document.getElementById('idea-card');
+  const profitBar = document.getElementById('profit-bar');
+
+  function show(idea) {
+    currentIdea = idea;
+    document.getElementById('idea-number').textContent = String(idea.id).padStart(2,'0');
+    document.getElementById('idea-tag').textContent = idea.tag;
+    document.getElementById('idea-title').textContent = idea.title;
+    document.getElementById('idea-desc').textContent = idea.desc;
+
+    const methodsGrid = document.getElementById('methods-grid');
+    methodsGrid.innerHTML = idea.methods.map(m =>
+      `<div class="method-pill">${m}</div>`
+    ).join('');
+
+    const domainsRow = document.getElementById('domains-row');
+    domainsRow.innerHTML = idea.domains.map(d =>
+      `<div class="domain-chip"><div class="domain-dot"></div>${d}</div>`
+    ).join('');
+
+    document.getElementById('profit-val').textContent = idea.profitLabel;
+
+    // Animate card
+    ideaCard.classList.remove('animate');
+    void ideaCard.offsetWidth; // reflow
+    ideaCard.classList.add('animate');
+
+    // Show result area
+    resultArea.classList.add('visible');
+
+    // Animate profit bar
+    profitBar.style.width = '0%';
+    setTimeout(() => {
+      profitBar.style.width = idea.profit + '%';
+    }, 100);
+
+    // Re-attach cursor events
+    document.querySelectorAll('.domain-chip, .method-pill').forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+    });
+  }
+
+  document.getElementById('big-btn').addEventListener('click', () => {
+    let idx;
+    do { idx = Math.floor(Math.random() * ideas.length); } while (idx === lastIndex);
+    lastIndex = idx;
+    genCount++;
+    document.getElementById('gen-count').textContent = genCount;
+    show(ideas[idx]);
+  });
+
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    if (!currentIdea) return;
+    const text = `WEIRD MONEY IDEA: ${currentIdea.title}\n\n${currentIdea.desc}\n\nMonetization: ${currentIdea.methods.join(', ')}\n\nExample domains: ${currentIdea.domains.join(', ')}`;
+    navigator.clipboard.writeText(text).then(() => {
+      const msg = document.getElementById('copied-msg');
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 2000);
+    });
+  });
+</script>
+</body>
+</html>
